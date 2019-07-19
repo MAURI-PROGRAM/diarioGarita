@@ -1,54 +1,32 @@
 import React, { Component } from "react";
-import { Table, Button } from "reactstrap";
-import Timestamp from "react-timestamp";
 import Titulo from "../components/Titulo";
 import { withRouter } from "react-router-dom";
-import db from "../FirestoreConfig";
-import Swal from "sweetalert2";
+import { Table } from "reactstrap";
+import Timestamp from "react-timestamp";
 
 export default withRouter(
-  class ListarCarros extends Component {
-    state = {
-      id: ""
-    };
-    colocarSalida = e => {
-      e.preventDefault();
-      db.collection("visitas")
-        .doc(e.target.value)
-        .update({
-          salida: new Date()
-        })
-        .then(ref => {
-          Swal.fire(
-            "El carro con placa ha salido",
-            "El producto se editó correctamente",
-            "success"
-          );
-          this.props.history.push("/listar/visita");
-        });
-    };
+  class ListarVisitas extends Component {
     render() {
       const { visitantes } = this.props;
       return (
         <div>
           <Titulo
-            titulo="Lista de Visitantes"
-            subtitulo="visitantes por salir"
+            titulo="Listado de Visitantes"
+            subtitulo="Historico de visitas"
           />
           <Table responsive className="text-center">
             <thead>
               <tr>
-                <th>Cedula</th>
                 <th>Placa</th>
                 <th>Entrada</th>
                 <th>Salida</th>
+                <th>Tiempo de Visita</th>
               </tr>
             </thead>
             <tbody>
               {visitantes && visitantes !== undefined
                 ? visitantes.map((visitante, key) => (
                     <tr key={key}>
-                      <td>{visitante.data.cedula}</td>
                       <td>{visitante.data.placa}</td>
                       <td>
                         {visitante.data.entrada === undefined ? (
@@ -61,12 +39,27 @@ export default withRouter(
                         )}
                       </td>
                       <td>
-                        <Button
-                          color="danger"
-                          onClick={this.colocarSalida}
-                          value={visitante.id}
-                          name={"salida"}
-                        />
+                        {visitante.data.salida === undefined ? (
+                          "--/--/-- --:--:--"
+                        ) : (
+                          <Timestamp
+                            date={visitante.data.salida.seconds}
+                            options={{ twentyFourHour: true }}
+                          />
+                        )}
+                      </td>
+                      <td>
+                        {visitante.data.salida === undefined &&
+                        visitante.data.entrada === undefined ? (
+                          "--/--/-- --:--:--"
+                        ) : (
+                          <Timestamp
+                            relative
+                            date={visitante.data.entrada.seconds}
+                            relativeTo={visitante.data.salida.seconds}
+                            autoUpdate
+                          />
+                        )}
                       </td>
                     </tr>
                   ))
